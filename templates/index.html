@@ -9,7 +9,7 @@
     <div class="card">
         <p class="eyebrow">Today &middot; Task Master</p>
         <h1>What's on your mind?</h1>
-        <p class="subtitle">A quiet place to plan, capture and revisit.</p>
+        <p class="subtitle">{{ today }}</p>
         <hr class="divider">
 
         <h2 class="section-title">Priorities</h2>
@@ -55,4 +55,103 @@
         </form>
     </div>
 </div>
+
+{% if journal %}
+<div class="modal-overlay" id="journal-overlay" role="dialog" aria-modal="true"
+     aria-labelledby="journal-title">
+    <div class="modal-newspaper">
+        <div class="journal-masthead">
+            <p class="journal-eyebrow" id="journal-title">Morning Reflection</p>
+        </div>
+        <div class="journal-icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 80 80" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                 class="journal-icon" width="72" height="72">
+                <path d="M30 14 C 33 18, 27 22, 30 26"/>
+                <path d="M40 10 C 43 14, 37 18, 40 22"/>
+                <path d="M50 14 C 53 18, 47 22, 50 26"/>
+                <path d="M22 34 L 58 34 L 55 60 Q 55 64, 51 64 L 29 64 Q 25 64, 25 60 Z"/>
+                <path d="M58 40 C 66 40, 66 52, 58 52"/>
+            </svg>
+        </div>
+
+        {% if journal.yesterday_done %}
+        <div class="journal-block">
+            <p class="journal-lead">
+                Yesterday, you finished
+                <strong>{{ journal.yesterday_done|length }}
+                task{% if journal.yesterday_done|length != 1 %}s{% endif %}</strong>
+                &mdash; well done.
+            </p>
+            <ul class="journal-list">
+                {% for t in journal.yesterday_done %}
+                <li>{{ t.content }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if journal.carryovers %}
+        <div class="journal-block">
+            <p class="journal-lead">
+                <strong>{{ journal.carryovers|length }}
+                task{% if journal.carryovers|length != 1 %}s{% endif %}</strong>
+                from earlier
+                {% if journal.carryovers|length == 1 %}is{% else %}are{% endif %}
+                still waiting:
+            </p>
+            <ul class="journal-list journal-list-muted">
+                {% for t in journal.carryovers %}
+                <li>{{ t.content }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <p class="journal-nudge">
+            Don&rsquo;t forget to add today&rsquo;s challenges.
+            <em>You&rsquo;ve got this.</em>
+        </p>
+
+        <form action="/journal/dismiss" method="POST" class="modal-actions"
+              id="journal-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">Start my day</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var overlay = document.getElementById('journal-overlay');
+        var form = document.getElementById('journal-form');
+        if (!overlay || !form) return;
+
+        var csrf = form.querySelector('input[name="csrf_token"]').value;
+        document.body.style.overflow = 'hidden';
+
+        function close(e) {
+            if (e) e.preventDefault();
+            // Tell the server this journal has been read (Flask-WTF also
+            // accepts X-CSRFToken header, so no form-body needed here).
+            fetch('/journal/dismiss', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf },
+                credentials: 'same-origin'
+            });
+            overlay.classList.add('closing');
+            var paper = overlay.querySelector('.modal-newspaper');
+            paper.addEventListener('animationend', function () {
+                overlay.remove();
+                document.body.style.overflow = '';
+            }, { once: true });
+        }
+
+        form.addEventListener('submit', close);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close(e);
+        });
+    })();
+</script>
+{% endif %}
 {% endblock %}

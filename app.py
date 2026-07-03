@@ -1,10 +1,10 @@
 # Imports
 import os
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # My app
 app = Flask(__name__)
@@ -48,7 +48,47 @@ def index():
     else:
         # Incomplete tasks first (False=0 sorts before True=1), then by date
         tasks = Todo.query.order_by(Todo.completed, Todo.date_created).all()
-        return render_template("index.html", tasks=tasks)
+        now = datetime.now()
+        today = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
+
+        # ---- Daily journal: show once per day on first visit ----
+        # SQLite stores datetimes without tz info, so compare with naive UTC.
+        today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        show_journal = session.get('last_journal_date') != today_str
+
+        journal = None
+        if show_journal:
+            today_start = datetime.now(timezone.utc).replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+            )
+            yesterday_start = today_start - timedelta(days=1)
+
+            yesterday_done = Todo.query.filter(
+                Todo.completed.is_(True),
+                Todo.completed_at >= yesterday_start,
+                Todo.completed_at < today_start,
+            ).order_by(Todo.completed_at).all()
+
+            carryovers = Todo.query.filter(
+                Todo.completed.is_(False),
+                Todo.date_created < today_start,
+            ).order_by(Todo.date_created).all()
+
+            journal = {
+                'yesterday_done': yesterday_done,
+                'carryovers': carryovers,
+            }
+            # Note: session is marked as seen only when the user explicitly
+            # dismisses via POST /journal/dismiss — not on mere page render.
+
+        return render_template("index.html", tasks=tasks, today=today, journal=journal)
+
+@app.route('/journal/dismiss', methods=['POST'])
+def journal_dismiss():
+    """Mark today's morning reflection as seen. Called when user clicks 'Start my day'."""
+    today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    session['last_journal_date'] = today_str
+    return redirect('/')
 
 @app.route('/toggle/<int:id>', methods=['POST'])
 def toggle(id):
