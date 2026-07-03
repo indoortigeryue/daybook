@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block head %}
-<title>Archive &middot; Task Master</title>
+<title>Archive &middot; Daybook</title>
 {% endblock %}
 
 {% block body %}
 <div class="content">
     <div class="card">
         <a href="/" class="back-link">&larr; Back</a>
-        <p class="eyebrow">Archive &middot; Task Master</p>
+        <p class="eyebrow">Archive &middot; Daybook</p>
         <h1>Past reflections</h1>
         <p class="subtitle">
             {% if total == 1 %}One completed task{% else %}{{ total }} completed tasks{% endif %}
