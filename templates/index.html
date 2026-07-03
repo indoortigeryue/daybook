@@ -22,8 +22,15 @@
         {% else %}
         <ul class="task-list">
             {% for task in tasks %}
-            <li class="task-item">
-                <span class="task-marker" aria-hidden="true"></span>
+            <li class="task-item {% if task.completed %}is-completed{% endif %}">
+                <form action="/toggle/{{task.id}}" method="POST" class="toggle-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="task-marker"
+                            aria-label="{% if task.completed %}Mark as incomplete{% else %}Mark as complete{% endif %}">
+                        {% if task.completed %}<span class="check">&#10003;</span>{% endif %}
+                    </button>
+                </form>
                 <div class="task-content">
                     <div class="task-text">{{ task.content }}</div>
                     <span class="task-date">{{ task.date_created.strftime('%b %d') }}</span>
