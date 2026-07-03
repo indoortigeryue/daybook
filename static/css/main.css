@@ -531,6 +531,116 @@ h1 {
     box-shadow: 0 0 0 3px rgba(142, 38, 56, 0.1);
 }
 
+/* ---------- Archive link (bottom of main card) ---------- */
+.card-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+}
+.archive-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: color var(--transition);
+}
+.archive-link:hover {
+    color: var(--accent);
+}
+.archive-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    background: var(--accent-faint);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    border-radius: 11px;
+}
+.archive-arrow {
+    font-size: 15px;
+    transition: transform var(--transition);
+}
+.archive-link:hover .archive-arrow {
+    transform: translateX(3px);
+}
+
+/* ---------- Archive page ---------- */
+.archive-day {
+    margin: 0 0 28px 0;
+}
+.archive-day:last-of-type {
+    margin-bottom: 8px;
+}
+
+.archive-day-header {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--text);
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+.archive-day-count {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+}
+
+.archive-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.archive-item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 4px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.archive-check {
+    color: var(--accent);
+    font-size: 12px;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+.archive-text {
+    flex: 1;
+    text-decoration: line-through;
+    text-decoration-color: var(--text-faint);
+    word-break: break-word;
+}
+.archive-time {
+    flex-shrink: 0;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ---------- Back link ---------- */
 .back-link {
     display: inline-flex;

@@ -53,6 +53,16 @@
                    placeholder="Add a new task&hellip;" autofocus required>
             <button type="submit" class="btn btn-primary">Add Task</button>
         </form>
+
+        {% if archive_count and archive_count > 0 %}
+        <div class="card-footer">
+            <a href="/archive" class="archive-link">
+                View past tasks
+                <span class="archive-count">{{ archive_count }}</span>
+                <span class="archive-arrow">&rarr;</span>
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
 

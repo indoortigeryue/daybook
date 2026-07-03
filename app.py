@@ -1,5 +1,6 @@
 # Imports
 import os
+from itertools import groupby
 from flask import Flask, render_template, url_for, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -46,8 +47,26 @@ def index():
             app.logger.exception("Failed to add task")
             return f'There was an issue adding your task: {e}', 500
     else:
-        # Incomplete tasks first (False=0 sorts before True=1), then by date
-        tasks = Todo.query.order_by(Todo.completed, Todo.date_created).all()
+        # Today's boundary in UTC (matches how completed_at / date_created are stored)
+        today_start = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+        )
+
+        # Main list: incomplete tasks + tasks completed TODAY.
+        # Older completed tasks are moved to the /archive view.
+        tasks = Todo.query.filter(
+            db.or_(
+                Todo.completed.is_(False),
+                Todo.completed_at >= today_start,
+            )
+        ).order_by(Todo.completed, Todo.date_created).all()
+
+        # Count of tasks in the archive, for the "View past tasks (N)" link
+        archive_count = Todo.query.filter(
+            Todo.completed.is_(True),
+            Todo.completed_at < today_start,
+        ).count()
+
         now = datetime.now()
         today = f"{now.strftime('%A, %B')} {now.day}, {now.year}"
 
@@ -81,7 +100,31 @@ def index():
             # Note: session is marked as seen only when the user explicitly
             # dismisses via POST /journal/dismiss — not on mere page render.
 
-        return render_template("index.html", tasks=tasks, today=today, journal=journal)
+        return render_template(
+            "index.html",
+            tasks=tasks,
+            today=today,
+            journal=journal,
+            archive_count=archive_count,
+        )
+
+@app.route('/archive')
+def archive():
+    """Show all previously completed tasks, grouped by completion date."""
+    today_start = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+    )
+    tasks = Todo.query.filter(
+        Todo.completed.is_(True),
+        Todo.completed_at < today_start,
+    ).order_by(Todo.completed_at.desc()).all()
+
+    # Group by date (already sorted DESC, so groupby produces desc-date groups)
+    grouped = [
+        (day, list(items))
+        for day, items in groupby(tasks, key=lambda t: t.completed_at.date())
+    ]
+    return render_template("archive.html", grouped=grouped, total=len(tasks))
 
 @app.route('/journal/dismiss', methods=['POST'])
 def journal_dismiss():

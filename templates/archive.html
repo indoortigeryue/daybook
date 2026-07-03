@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Archive &middot; Task Master</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <div class="card">
+        <a href="/" class="back-link">&larr; Back</a>
+        <p class="eyebrow">Archive &middot; Task Master</p>
+        <h1>Past reflections</h1>
+        <p class="subtitle">
+            {% if total == 1 %}One completed task{% else %}{{ total }} completed tasks{% endif %}
+            from earlier days.
+        </p>
+        <hr class="divider">
+
+        {% if grouped|length < 1 %}
+        <div class="empty">
+            <div class="icon">&mdash;</div>
+            <h4>No past tasks yet. Keep at it.</h4>
+        </div>
+        {% else %}
+        {% for day, tasks in grouped %}
+        <section class="archive-day">
+            <h3 class="archive-day-header">
+                {{ day.strftime('%A, %B') }} {{ day.day }}, {{ day.year }}
+                <span class="archive-day-count">{{ tasks|length }}</span>
+            </h3>
+            <ul class="archive-list">
+                {% for t in tasks %}
+                <li class="archive-item">
+                    <span class="archive-check" aria-hidden="true">&#10003;</span>
+                    <span class="archive-text">{{ t.content }}</span>
+                    <span class="archive-time">{{ t.completed_at.strftime('%H:%M') }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
