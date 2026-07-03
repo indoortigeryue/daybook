@@ -6,33 +6,46 @@
 
 {% block body %}
 <div class="content">
-    <h1 style="text-align: center">Task Master</h1>
-    {% if tasks|length < 1 %}
-    <h4 style="text-align: center">There are no tasks. Create one below!</h4>
-    {% else %}
-    <table>
-        <tr>
-            <th>Task</th>
-            <th>Added</th>
-            <th>Actions</th>
-        </tr>
-        {% for task in tasks %}
-            <tr>
-                <td>{{ task.content }}</td>
-                <td>{{ task.date_created.date() }}</td>
-                <td>
-                    <a href="/delete/{{task.id}}">Delete</a>
-                    <br>
-                    <a href="/update/{{task.id}}">Update</a>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-    {% endif %}
+    <div class="card">
+        <p class="eyebrow">Today &middot; Task Master</p>
+        <h1>What's on your mind?</h1>
+        <p class="subtitle">A quiet place to plan, capture and revisit.</p>
+        <hr class="divider">
 
-    <form action="/" method="POST">
-        <input type="text" name="content" id="content">
-        <input type="submit" value="Add Task">
-    </form>
+        <h2 class="section-title">Priorities</h2>
+
+        {% if tasks|length < 1 %}
+        <div class="empty">
+            <div class="icon">&mdash;</div>
+            <h4>Nothing here yet. Add your first task below.</h4>
+        </div>
+        {% else %}
+        <ul class="task-list">
+            {% for task in tasks %}
+            <li class="task-item">
+                <span class="task-marker" aria-hidden="true"></span>
+                <div class="task-content">
+                    <div class="task-text">{{ task.content }}</div>
+                    <span class="task-date">{{ task.date_created.strftime('%b %d') }}</span>
+                </div>
+                <div class="task-actions">
+                    <a href="/update/{{task.id}}" class="btn btn-ghost">Edit</a>
+                    <form action="/delete/{{task.id}}" method="POST" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form action="/" method="POST" class="task-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="content" id="content" class="input"
+                   placeholder="Add a new task&hellip;" autofocus required>
+            <button type="submit" class="btn btn-primary">Add Task</button>
+        </form>
+    </div>
 </div>
 {% endblock %}
