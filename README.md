@@ -9,9 +9,6 @@ curated set of sample tasks. No registration required.
 > Deployed on Render's free tier — the first request after ~15 minutes of
 > idle takes about 30 seconds to wake up. Subsequent requests are instant.
 
-<!-- Replace with an actual screenshot or short GIF:
-     save one to docs/screenshot.png and drop it in below. -->
-
 ![Daybook screenshot](docs/screenshot.png)
 
 ---
@@ -24,7 +21,7 @@ curated set of sample tasks. No registration required.
 - Older completed tasks slide into a **quiet archive**, grouped by
   date, so today's list stays focused on today.
 - **Guest mode** reseeds a full sample dataset on every visit — great
-  for demoing the app without leaving artifacts.
+  for demoing without leaving artifacts.
 
 ## Tech stack
 
@@ -33,85 +30,50 @@ curated set of sample tasks. No registration required.
 | Language | Python 3.11+ |
 | Web framework | Flask 3 + Jinja2 |
 | ORM & migrations | SQLAlchemy 2 + Alembic (via Flask-Migrate) |
-| Auth | Flask-Login + Werkzeug password hashing (pbkdf2-sha256) |
+| Auth | Flask-Login + Werkzeug password hashing |
 | CSRF | Flask-WTF |
-| Database | Postgres 18 in production (Neon), SQLite locally |
+| Database | Postgres in production (Neon), SQLite locally |
 | Server | Gunicorn on Render |
-| Frontend | Vanilla CSS, no build step, no framework |
+| Frontend | Vanilla HTML/CSS, no build step, no framework |
 
 ---
 
-## Notable engineering choices
-
-This project is a personal learning piece, but I've written it as though
-someone else will read the code. The decisions below are the ones a
-beginner CRUD tutorial usually skips.
+## A few things I paid attention to
 
 ### Auth and access control
 
-- **Password hashing** via `werkzeug.security` (pbkdf2-sha256 by default,
-  auto-salted). No plaintext passwords anywhere.
-- **IDOR protection**: every task-scoped query filters by
-  `current_user.id`. A signed-in user who guesses another user's task
-  id gets a 404, not their data. See `_get_own_task_or_404` in `app.py`.
-- **CSRF protection** on every state-changing route via Flask-WTF.
-  Both form-body `csrf_token` and `X-CSRFToken` header are accepted, so
-  progressive-enhancement `fetch()` calls work alongside plain forms.
-- **Session cookies** are `HttpOnly`, `SameSite=Lax` always, and
-  `Secure` in production (auto-detected from `DATABASE_URL`).
-- **Open-redirect defense** on the `?next=` parameter (`_safe_next`
-  rejects anything that isn't a same-origin relative path).
-- **Fail-loud on missing secrets**: the app refuses to start in
-  production without an explicit `SECRET_KEY`. No silent fallback to a
-  dev key.
-- **Per-user session hygiene**: session-cookie state that is user-scoped
-  (like "have you dismissed today's journal?") is cleared at every
-  login boundary. Prevents state leaking across accounts on shared
-  browsers.
+- **Password hashing** via `werkzeug.security` — passwords are never
+  stored in plaintext.
+- **CSRF tokens** on every state-changing route (via Flask-WTF).
+- **Data isolation between users**: every task query filters by the
+  current user's id, so someone signed in as one account can't reach
+  another account's data by guessing task ids.
+- **Session cookies** are marked `HttpOnly` and `SameSite=Lax`, and
+  `Secure` in production.
 
 ### Schema and migrations
 
-- **No `db.create_all()`** — schema changes go through Alembic. Every
-  change is a versioned, reviewable migration file.
-- **Dialect-neutral defaults** (`sa.false()`, not `sa.text('0')`) so
-  the same migration runs on SQLite locally and Postgres in prod.
-  This was the actual bug that surfaced on first deploy.
-- **Named FK constraints** — required by SQLite's batch-mode migrations.
-- **`pool_pre_ping=True`** on the SQLAlchemy engine in production, so
-  connections idled by Neon's serverless Postgres are re-validated
-  before use.
-- **Boolean `server_default`** ensures existing rows get a valid value
-  when `NOT NULL` columns are added mid-project.
+- Schema changes go through **Alembic migrations** rather than
+  `db.create_all()`, so every change is versioned.
+- The **same code runs SQLite locally and Postgres in production** —
+  the database URL comes from an environment variable.
 
-### Config and deployment
+### Deployment
 
-- **Twelve-Factor App**: `DATABASE_URL`, `SECRET_KEY`, and `PORT` all
-  come from the environment. The same code runs SQLite locally and
-  Postgres in production with no code change.
-- Legacy `postgres://` URL scheme (Heroku/Neon default) is rewritten
-  to `postgresql://` so SQLAlchemy 2.x accepts it.
-- **Migrations run on release**, not on build. The Render start
-  command is `flask db upgrade && gunicorn app:app` so every deploy
-  applies any pending schema changes before serving traffic.
+- All secrets (database URL, session key, port) come from environment
+  variables. No secrets in the repo.
+- Every deploy runs pending migrations before starting the server,
+  so schema changes ship together with the code that needs them.
 
-### UX and frontend
+### UX
 
-- **Zero-JavaScript baseline**: every form posts to a real endpoint and
-  works without JS. JavaScript is layered on top only to smooth
-  modal open/close animations.
-- **Newspaper-unfold animation** on the Morning Reflection modal
-  (two-phase `scale()` keyframes — first horizontal stretch, then
-  vertical unfold).
-- **`prefers-reduced-motion`** collapses all animations for users who
-  request reduced motion in their OS.
-- **`text-wrap: pretty`** prevents widow words on paragraph text,
-  with a manual `&nbsp;` as a fallback for older browsers.
-- **Serif + sans-serif pairing** (Playfair Display for display type,
-  system sans for body) modeled on editorial design (New Yorker,
-  Medium).
-- **Guest mode reseeds** a curated dataset on every login. Reviewers
-  always see the app in all states (archive with history, carryovers,
-  yesterday's wins) without having to add data themselves.
+- **Everything works with JavaScript disabled** — forms POST to real
+  endpoints. JS is layered on top only to smooth modal animations.
+- **Respects `prefers-reduced-motion`** for users who don't want
+  animations.
+- **Guest mode reseeds** a curated sample dataset on every login, so
+  demo visitors always see the app in all its states (archive,
+  carryovers, yesterday's wins) without adding data themselves.
 
 ---
 
@@ -150,16 +112,13 @@ daybook/
 │   └── update.html
 ├── static/css/main.css     # All styles
 ├── requirements.txt
-└── Procfile                # web: gunicorn app:app  (Render / Heroku format)
+└── Procfile                # web: gunicorn app:app
 ```
 
-## What's next
+## Ideas for future extensions
 
-Rough backlog, in priority order:
-
-- Unit and integration tests (pytest)
-- Password reset flow via email
-- Proper per-user timezones (server stores UTC; UI currently shows UTC
-  dates too)
+- Email + password reset flow
+- Per-user timezones (currently the server stores and displays UTC)
 - Task tags and search
-- Public share links for daily reflections
+- Share links for daily reflections
+- Native mobile-friendly PWA install
