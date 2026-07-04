@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('todo',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.String(length=200), nullable=False),
-    sa.Column('completed', sa.Boolean(), server_default=sa.text('0'), nullable=False),
+    sa.Column('completed', sa.Boolean(), server_default=sa.false(), nullable=False),
     sa.Column('date_created', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )

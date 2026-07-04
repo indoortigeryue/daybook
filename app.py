@@ -63,7 +63,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     is_guest = db.Column(db.Boolean, nullable=False, default=False,
-                        server_default=db.text('0'))
+                        server_default=db.false())
     created_at = db.Column(db.DateTime,
                           default=lambda: datetime.now(timezone.utc))
 
@@ -96,7 +96,7 @@ class Todo(db.Model):
         db.Boolean,
         nullable=False,
         default=False,
-        server_default=db.text('0'),  # backfills existing rows during ALTER TABLE
+        server_default=db.false(),  # backfills existing rows; dialect-neutral (0 on SQLite, FALSE on Postgres)
     )
     completed_at = db.Column(db.DateTime, nullable=True)  # UTC; null when incomplete
     date_created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
