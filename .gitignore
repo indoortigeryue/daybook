@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache/
+
+# Test artifacts
+tests/test_daybook.db
 
 # Virtualenv
 env/

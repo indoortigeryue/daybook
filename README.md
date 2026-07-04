@@ -97,6 +97,17 @@ python app.py
 Open <http://127.0.0.1:5001> — register a new account, or click
 **Try as guest →** for one-click access.
 
+## Running tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+The test suite covers auth flow (register / login / logout / guest),
+data isolation between users (IDOR protection), and the welcome +
+morning-reflection modal logic.
+
 ## Project layout
 
 ```

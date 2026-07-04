@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+# -q keeps output compact; -x stops on the first failure while iterating
+addopts = "-q"

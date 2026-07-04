@@ -24,8 +24,10 @@ DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///test.db')
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
-# Presence of DATABASE_URL is a reliable "we're deployed" signal
-IS_PRODUCTION = bool(os.environ.get('DATABASE_URL'))
+# "Production" means we're talking to a real Postgres backend — not just
+# that DATABASE_URL is set. Tests can point at SQLite without flipping the
+# strictness switches (mandatory SECRET_KEY, HTTPS-only cookies).
+IS_PRODUCTION = DATABASE_URL.startswith('postgresql://')
 
 # SECRET_KEY: required in prod (used to sign session cookies + CSRF tokens).
 # Refusing to start without it is safer than silently using a known-weak key.
@@ -84,7 +86,7 @@ class User(UserMixin, db.Model):
 def load_user(user_id):
     """Given the id stored in the session, return the User object.
     Flask-Login calls this on every request to hydrate `current_user`."""
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 class Todo(db.Model):
