@@ -13,12 +13,43 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone, timedelta
 
-# My app
+# ---- Configuration --------------------------------------------------------
+# Everything env-driven; the same code runs SQLite locally and Postgres on
+# a cloud host. See 12-Factor App III (Config) & IV (Backing services).
+
+# DATABASE_URL: cloud providers (Neon, Render, Heroku) inject this at runtime.
+# Fall back to SQLite for local dev.
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///test.db')
+# Legacy 'postgres://' scheme (Heroku era) isn't recognized by SQLAlchemy 2.x.
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+# Presence of DATABASE_URL is a reliable "we're deployed" signal
+IS_PRODUCTION = bool(os.environ.get('DATABASE_URL'))
+
+# SECRET_KEY: required in prod (used to sign session cookies + CSRF tokens).
+# Refusing to start without it is safer than silently using a known-weak key.
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if IS_PRODUCTION:
+        raise RuntimeError(
+            'SECRET_KEY env var must be set in production. '
+            'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
+        )
+    SECRET_KEY = 'dev-only-insecure-key-change-me'
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-# SECRET_KEY is used by Flask to sign CSRF tokens (and session cookies).
-# In production, set this via environment variable — never commit a real secret.
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-only-insecure-key-change-me')
+app.config.update(
+    SQLALCHEMY_DATABASE_URI=DATABASE_URL,
+    SECRET_KEY=SECRET_KEY,
+    # Serverless Postgres (Neon) closes idle connections; ping before use to
+    # detect stale pooled connections and reconnect transparently.
+    SQLALCHEMY_ENGINE_OPTIONS={'pool_pre_ping': True},
+    # ---- Session cookie hardening ----
+    SESSION_COOKIE_HTTPONLY=True,      # JS can't read (defense against XSS)
+    SESSION_COOKIE_SAMESITE='Lax',     # Extra CSRF defense (defense in depth)
+    SESSION_COOKIE_SECURE=IS_PRODUCTION,  # HTTPS-only in prod; false locally so cookies work over http
+)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
@@ -393,8 +424,13 @@ def update(id):
 
 
 if __name__ == "__main__":
-    # Schema is managed by Flask-Migrate.
-    # Run `flask db upgrade` once after cloning / after pulling migrations,
-    # then `python app.py` to start the server.
+    # NOTE: In production this block is NOT executed. Gunicorn imports
+    # `app` directly (see Procfile: `web: gunicorn app:app`) and serves
+    # WSGI without touching __main__. Debug is only relevant locally.
+    #
+    # Schema is managed by Flask-Migrate — run `flask db upgrade` once
+    # after cloning / after pulling migrations, then `python app.py`.
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=True, port=port)
+    # Default debug=ON locally; explicitly disable with FLASK_DEBUG=0
+    debug = os.environ.get('FLASK_DEBUG', '1') != '0'
+    app.run(debug=debug, port=port)
