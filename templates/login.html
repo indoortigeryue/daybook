@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Sign in &middot; Daybook</title>
+{% endblock %}
+
+{% block body %}
+<div class="content content-narrow">
+    <div class="card">
+        <h1 class="brand-logo">Daybook</h1>
+        <h2 class="auth-heading">Sign in</h2>
+        <hr class="divider">
+
+        {% if error %}
+        <p class="form-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="/login" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" class="input"
+                   value="{{ username or '' }}" autocomplete="username"
+                   autofocus required>
+
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" class="input"
+                   autocomplete="current-password" required>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <form method="POST" action="/guest-login">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost btn-block">
+                Try as guest &rarr;
+            </button>
+        </form>
+
+        <p class="auth-alt">
+            New here? <a href="/register">Create an account</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

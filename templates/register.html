@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Create account &middot; Daybook</title>
+{% endblock %}
+
+{% block body %}
+<div class="content content-narrow">
+    <div class="card">
+        <h1 class="brand-logo">Daybook</h1>
+        <h2 class="auth-heading">Register</h2>
+        <hr class="divider">
+
+        {% if error %}
+        <p class="form-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="/register" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" class="input"
+                   value="{{ username or '' }}" autocomplete="username"
+                   minlength="3" autofocus required>
+
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" class="input"
+                   autocomplete="new-password" minlength="6" required>
+            <p class="input-hint">At least 6 characters.</p>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                Create account
+            </button>
+        </form>
+
+        <p class="auth-alt">
+            Already have one? <a href="/login">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

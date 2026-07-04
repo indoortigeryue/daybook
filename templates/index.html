@@ -7,7 +7,16 @@
 {% block body %}
 <div class="content">
     <div class="card">
-        <p class="eyebrow">Today &middot; Daybook</p>
+        <div class="eyebrow-row">
+            <p class="eyebrow">Today &middot; Daybook</p>
+            <span class="user-chip">
+                {{ current_user.username }} &middot;
+                <form method="POST" action="/logout" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="logout-btn">Sign out</button>
+                </form>
+            </span>
+        </div>
         <h1>What's on your mind?</h1>
         <p class="subtitle">{{ today }}</p>
         <hr class="divider">
@@ -65,6 +74,86 @@
         {% endif %}
     </div>
 </div>
+
+{% if welcome %}
+<div class="modal-overlay" id="welcome-overlay" role="dialog" aria-modal="true"
+     aria-labelledby="welcome-title">
+    <div class="modal-newspaper">
+        <div class="journal-masthead">
+            <p class="journal-eyebrow" id="welcome-title">Welcome</p>
+        </div>
+        <div class="journal-icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 80 80" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                 class="journal-icon" width="72" height="72">
+                <path d="M40 22 L 20 26 L 20 62 L 40 58 L 60 62 L 60 26 L 40 22 Z"/>
+                <path d="M40 22 L 40 58"/>
+                <path d="M26 34 L 36 32"/>
+                <path d="M26 42 L 36 40"/>
+                <path d="M26 50 L 36 48"/>
+                <path d="M44 32 L 54 34"/>
+                <path d="M44 40 L 54 42"/>
+                <path d="M44 48 L 54 50"/>
+            </svg>
+        </div>
+
+        <p class="journal-lead" style="text-align:center; font-size:17px;">
+            Welcome to <strong>Daybook</strong>.
+        </p>
+        <p class="journal-lead" style="text-align:center;">
+            A quieter way to take back control of your days &mdash;
+            one small task at a time.
+        </p>
+
+        <ul class="journal-list" style="margin-top:16px;">
+            <li>Capture what&rsquo;s on your mind, in your own words</li>
+            <li>Each morning, revisit yesterday&rsquo;s wins and what&rsquo;s still waiting</li>
+            <li>Watch a quiet archive build day by day</li>
+        </ul>
+
+        <p class="journal-nudge">
+            <em>Ready when you are.</em>
+        </p>
+
+        <form action="/welcome/dismiss" method="POST" class="modal-actions"
+              id="welcome-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary">Begin</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function () {
+        var overlay = document.getElementById('welcome-overlay');
+        var form = document.getElementById('welcome-form');
+        if (!overlay || !form) return;
+
+        var csrf = form.querySelector('input[name="csrf_token"]').value;
+        document.body.style.overflow = 'hidden';
+
+        function close(e) {
+            if (e) e.preventDefault();
+            fetch('/welcome/dismiss', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf },
+                credentials: 'same-origin'
+            });
+            overlay.classList.add('closing');
+            var paper = overlay.querySelector('.modal-newspaper');
+            paper.addEventListener('animationend', function () {
+                overlay.remove();
+                document.body.style.overflow = '';
+            }, { once: true });
+        }
+
+        form.addEventListener('submit', close);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close(e);
+        });
+    })();
+</script>
+{% endif %}
 
 {% if journal %}
 <div class="modal-overlay" id="journal-overlay" role="dialog" aria-modal="true"
