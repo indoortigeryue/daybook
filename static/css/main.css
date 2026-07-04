@@ -672,12 +672,15 @@ h1 {
     line-height: 1;
     color: var(--text);
     text-align: center;
-    margin: 0 0 14px 0;
+    margin: 0 0 26px 0;
 }
 
 .auth-heading {
     /* Matches the eyebrow style on main pages — small caps, letter-spaced,
-       sans-serif. Consistent visual language for section labels. */
+       sans-serif. Consistent visual language for section labels.
+       Grouped visually with the divider + form below it (small bottom margin),
+       intentionally separated from the logo above (large top gap via
+       brand-logo margin). */
     font-family: var(--sans);
     font-weight: 500;
     font-size: 12px;
@@ -685,7 +688,7 @@ h1 {
     text-transform: uppercase;
     color: var(--text-muted);
     text-align: center;
-    margin: 0 0 20px 0;
+    margin: 0 0 8px 0;
 }
 
 .auth-form {
