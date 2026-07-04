@@ -363,8 +363,12 @@ def journal_dismiss():
 @app.route('/welcome/dismiss', methods=['POST'])
 @login_required
 def welcome_dismiss():
-    """Mark the welcome modal as seen for this browser session."""
+    """Mark the welcome modal as seen for this browser session.
+    Also mark today's morning reflection as seen — a brand-new user has
+    no history to reflect on, and stacking two modals back-to-back is
+    overwhelming."""
     session['welcomed'] = 'y'
+    session['last_journal_date'] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     return redirect('/')
 
 
