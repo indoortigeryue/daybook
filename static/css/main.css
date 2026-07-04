@@ -227,6 +227,21 @@ h1 {
     min-width: 160px;
 }
 
+/* Stacked variant — tagline centered above the button (used in welcome modal) */
+.modal-actions-stacked {
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+.modal-tagline {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0;
+    text-align: center;
+}
+
 /* ---------- Daily journal content ---------- */
 .journal-eyebrow {
     font-family: var(--sans);
@@ -263,6 +278,9 @@ h1 {
     color: var(--text);
     margin: 0 0 6px 0;
     line-height: 1.5;
+    /* Prevents "widow" — a single word left on the last line.
+       Falls back to normal wrap on older browsers. */
+    text-wrap: pretty;
 }
 .journal-lead strong {
     font-weight: 700;
@@ -648,23 +666,23 @@ h1 {
 
 .brand-logo {
     font-family: var(--serif);
-    font-size: 64px;
+    font-size: 46px;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1;
     color: var(--text);
     text-align: center;
-    margin: 0 0 4px 0;
+    margin: 0 0 14px 0;
 }
 
 .auth-heading {
     font-family: var(--serif);
     font-style: italic;
     font-weight: 400;
-    font-size: 22px;
+    font-size: 20px;
     color: var(--text-muted);
     text-align: center;
-    margin: 0 0 24px 0;
+    margin: 0 0 14px 0;
 }
 
 .auth-form {

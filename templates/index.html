@@ -101,8 +101,7 @@
             Welcome to <strong>Daybook</strong>.
         </p>
         <p class="journal-lead" style="text-align:center;">
-            A quieter way to take back control of your days &mdash;
-            one small task at a time.
+            Take back your days &mdash; one small task at a&nbsp;time.
         </p>
 
         <ul class="journal-list" style="margin-top:16px;">
@@ -111,12 +110,9 @@
             <li>Watch a quiet archive build day by day</li>
         </ul>
 
-        <p class="journal-nudge">
-            <em>Ready when you are.</em>
-        </p>
-
-        <form action="/welcome/dismiss" method="POST" class="modal-actions"
-              id="welcome-form">
+        <form action="/welcome/dismiss" method="POST"
+              class="modal-actions modal-actions-stacked" id="welcome-form">
+            <p class="modal-tagline"><em>Ready when you are.</em></p>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-primary">Begin</button>
         </form>
