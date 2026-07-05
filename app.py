@@ -211,6 +211,17 @@ def _seed_guest_tasks(user_id):
             date_created=date_created,
         ))
 
+@app.route('/demo')
+def demo_landing():
+    """Portfolio-friendly entry point: always drops any existing session
+    so a returning visitor (e.g. a recruiter who tried the app weeks ago)
+    sees the branded login page again — not whatever state they left
+    behind. This is the URL to advertise on the resume."""
+    if current_user.is_authenticated:
+        logout_user()
+    _clear_user_scoped_session()
+    return redirect('/login')
+
 @app.route('/guest-login', methods=['POST'])
 def guest_login():
     """One-click demo access for anyone visiting the portfolio site.

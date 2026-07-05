@@ -65,6 +65,21 @@ def test_guest_login_creates_a_seeded_account(client):
     ])
 
 
+def test_demo_landing_clears_session_and_redirects_to_login(client):
+    """The /demo entry point (advertised on the resume) always drops
+    the current session so a stale guest cookie doesn't skip past the
+    branded login page."""
+    # Log in as guest first, then hit /demo
+    client.post("/guest-login")
+    r = client.get("/demo", follow_redirects=False)
+    assert r.status_code == 302
+    assert "/login" in r.headers["Location"]
+    # After /demo, hitting / should redirect to login (not into the app)
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code == 302
+    assert "/login" in r.headers["Location"]
+
+
 def test_logout_signs_user_out(client):
     register(client, "frank")
     logout(client)
