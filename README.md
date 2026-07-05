@@ -2,7 +2,7 @@
 
 A quieter Flask journal for daily tasks and morning reflections.
 
-**Live demo →** [daybook-qti8.onrender.com](https://daybook-qti8.onrender.com/)
+**Live demo →** [daybook-qti8.onrender.com](https://daybook-qti8.onrender.com/demo)
 Click **"Try as guest →"** on the sign-in page for one-click access with a
 curated set of sample tasks. No registration required.
 
